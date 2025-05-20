@@ -1,0 +1,91 @@
+use college;
+
+create table student_course(
+	Roll_No int primary key,
+    Course varchar(100),
+    Course_Code varchar(10),
+    Semester int ,
+    Total_Marks int,
+    Percentage decimal(5,2)
+);
+
+insert into student_course (Roll_No,Course,Course_Code,Semester,Total_Marks,Percentage)  values 
+(1,'DBMS','DB101',4,100,85.5),
+(2, 'DBMS', 'DB101', 4, 100, 78.0),
+(3, 'DBMS', 'DB101', 4, 100, 92.0),
+(4, 'DBMS', 'DB101', 4, 100, 68.5),
+(5, 'DBMS', 'DB101', 4, 100, 74.0),
+(6, 'DBMS', 'DB101', 4, 100, 88.0),
+(7, 'DBMS', 'DB101', 4, 100, 55.0),
+(8, 'DBMS', 'DB101', 4, 100, 45.0),
+(9, 'DBMS', 'DB101', 4, 100, 63.5),
+(10, 'DBMS', 'DB101', 4, 100, 79.5),
+(11, 'TOC', 'TC102', 4, 100, 58.0),
+(12, 'TOC', 'TC102', 4, 100, 67.0),
+(13, 'TOC', 'TC102', 4, 100, 72.5),
+(14, 'OS', 'OS103', 4, 100, 81.0),
+(15, 'OS', 'OS103', 4, 100, 69.0),
+(16, 'OS', 'OS103', 4, 100, 49.0),
+(17, 'PS', 'PS104', 4, 100, 94.0),
+(18, 'PS', 'PS104', 4, 100, 85.0),
+(19, 'PS', 'PS104', 4, 100, 76.0),
+(20, 'PS', 'PS104', 4, 100, 60.5);
+
+select * from student_course;
+
+
+
+-- drop procedure if exists getrank;
+
+delimiter //
+
+create procedure getrank (in crc varchar(255))
+begin
+	declare distinction int default 0;
+    declare firstclass int default 0;
+    declare highersec int default 0;
+    declare sec int default 0;
+    declare pass int default 0;
+    declare per decimal(5,2);
+    declare finished int default 0;
+    
+    declare r cursor for
+		select percentage from student_course where course=crc;
+        
+	declare continue handler for not found set finished=1;
+    
+    open r;
+    read_loop: loop
+		fetch r into per;
+        if finished=1 then
+			leave read_loop;
+		end if;
+        
+        if per >=80 then
+			set distinction=distinction+1;
+		elseif per >= 70 then
+			set firstclass=firstclass + 1;
+		elseif per >= 60 then
+			set highersec=highersec + 1;
+		elseif per >= 50 then
+			set sec=sec + 1;
+		else 
+			set pass=pass+1;
+		end if;
+	end loop;
+    
+    close r;
+    
+    select crc as 'Course',
+		   distinction as '80-100%',
+		   firstclass as '70-79%',
+           highersec as '60-69%',
+           sec as '50-59%',
+           pass as 'Below 50%';
+end //
+delimiter ;
+
+call getrank('DBMS');
+
+
+

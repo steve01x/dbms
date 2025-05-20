@@ -1,0 +1,93 @@
+--create database mydb
+-- use mydb;
+
+show tables;
+
+-- drop table StudentPerc;
+
+create table StudentPerc(
+	rollno int primary key,
+    name varchar(50),
+    marks1 int,
+    marks2 int,
+    marks3 int,
+    marks4 int,
+    marks5 int,
+    total_marks int default 0,
+    percentage decimal(5,2) default 0.00
+);
+	
+
+select * from StudentPerc;
+
+insert into StudentPerc(rollno,name,marks1,marks2,marks3,marks4,marks5)
+values  
+(1, 'Arjun Sharma', 80, 90, 85, 75, 70),
+(2, 'Neha Patel', 60, 70, 65, 85, 80),
+(3, 'Kavya Reddy', 90, 95, 100, 85, 80),
+(4, 'Ravi Kumar', 30, 46, 71, 44, 55),
+(5, 'Siddharth Joshi', 80, 46, 51, 44, 55),
+(6, 'Manish Singh', 60, 46, 51, 44, 25);
+
+
+
+drop procedure if exists calculate_percentage;
+
+DELIMITER //
+
+CREATE PROCEDURE calculate_percentage()
+BEGIN
+    DECLARE total INT DEFAULT 0;
+    DECLARE percentage DECIMAL(5,2) DEFAULT 0.00;
+    DECLARE done INT DEFAULT 0;
+    
+    -- Declare variables for cursor data
+    DECLARE v_rollno INT;
+    DECLARE v_marks1 INT;
+    DECLARE v_marks2 INT;
+    DECLARE v_marks3 INT;
+    DECLARE v_marks4 INT;
+    DECLARE v_marks5 INT;
+    
+    
+    DECLARE cur CURSOR FOR 
+        SELECT rollno, marks1, marks2, marks3, marks4, marks5 FROM StudentPerc;
+    
+    -- Continue handler for end of cursor
+    DECLARE CONTINUE HANDLER FOR NOT FOUND SET done = 1;
+    
+    -- Open cursor
+    OPEN cur;
+    
+    -- Start loop
+    student_loop: LOOP
+    
+        -- Fetch values into variables
+        FETCH cur INTO v_rollno, v_marks1, v_marks2, v_marks3, v_marks4, v_marks5;
+        
+        -- Check for end of cursor
+        IF done = 1 THEN 
+            LEAVE student_loop;
+        END IF;
+        
+        -- Calculate total and percentage
+        SET total = v_marks1 + v_marks2 + v_marks3 + v_marks4 + v_marks5;
+        SET percentage = (total / 500) * 100;
+        
+        -- Update the Student table
+        UPDATE StudentPerc 
+        SET total_marks = total, 
+            percentage = percentage 
+        WHERE rollno = v_rollno;
+    
+    END LOOP student_loop;
+    
+    -- Close cursor
+    CLOSE cur;
+END //
+
+DELIMITER ;
+
+call calculate_percentage();
+
+select * from StudentPerc;

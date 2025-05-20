@@ -1,0 +1,97 @@
+use mydb;
+show tables;
+
+create table Student(
+rollno int primary key,
+name varchar(50),
+marks1 int, marks2 int, marks3 int, marks4 int, marks5 int
+
+);
+
+INSERT INTO Student (rollno, name, Marks1, Marks2, Marks3, Marks4, Marks5) VALUES
+(1, 'Aarav', 95, 85, 75, 80, 90),
+(2, 'Priya', 80, 70, 65, 90, 85),
+(3, 'Rohan', 60, 50, 55, 70, 65),
+(4, 'Sneha', 100, 99, 98, 97, 96),
+(5, 'Vikram', 45, 60, 55, 40, 50);
+
+create table Result(
+rollno int primary key,
+total_marks int,
+class varchar(50)
+
+);
+
+delimiter //
+
+create procedure calculate_class()
+begin
+    declare total int;
+    declare roll int;
+    declare m1 int;
+    declare m2 int;
+    declare m3 int;
+    declare m4 int;
+    declare m5 int;
+    declare classification varchar(50);
+    declare finished int default 0;
+    
+    
+    declare cur cursor for
+    select rollno, marks1,marks2,marks3,marks4,marks5 from Student;
+    
+    declare continue handler for not found set finished =1;
+    
+    open cur;
+    
+    read_loop: loop
+		fetch cur into roll,m1,m2,m3,m4,m5;
+        
+        if finished = 1 then
+			leave read_loop;
+		end if;
+        
+        if m1<0 or m1>100 or
+		   m2<0 or m2>100 or
+           m3<0 or m3>100 or
+           m4<0 or m4>100 or
+           m5<0 or m5>100 then 
+           
+			signal sqlstate '45000'
+            set message_text='Marks out of Range';
+            
+		end if;
+        
+        
+        set total=m1+m2+m3+m4+m5;
+        
+        
+        if total >=990 and total <= 1499 then
+			set classification = 'Distinction';
+		elseif total >=900 and total<=989 then
+			set classification='First Class';
+		elseif total >=825 and total<=899 then
+			set classification='Higher Second';
+		elseif total >=750 and total<=824 then
+			set classification='Second';
+		else
+			set classification='Pass';
+		end if;
+        
+        insert into Result(rollno,total_marks,class)
+        values(roll,total,classification)
+        
+        on duplicate key update total_marks=total,class=classification;
+        
+    
+    end loop read_loop;
+    
+    close cur;
+
+
+end //
+delimiter ;
+
+call calculate_class();
+
+select * from Result;

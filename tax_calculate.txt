@@ -1,0 +1,84 @@
+-- Show databases
+SHOW DATABASES;
+
+-- USE mydb;
+SHOW TABLES;
+
+
+CREATE TABLE Employee_Salary (
+    emp_no INT PRIMARY KEY,
+    basic DECIMAL(10,2),
+    HRA DECIMAL(10,2),
+    DA DECIMAL(10,2),
+    Total_deduction DECIMAL(10,2),
+    net_salary DECIMAL(10,2),
+    gross_Salary DECIMAL(10,2)
+);
+
+
+truncate table employee_salary;
+
+INSERT INTO Employee_Salary (emp_no, basic, HRA, DA, Total_deduction, net_salary, gross_Salary)
+VALUES 
+(101, 630000.00, 12000.00, 6000.00, 3000.00, 45000.00, 648000.00),
+(102, 40000.00, 16000.00, 8000.00, 4000.00, 60000.00, 64000.00),
+(103, 535000.00, 14000.00, 7000.00, 3500.00, 52500.00, 556000.00),
+(104, 828000.00, 10000.00, 5000.00, 2500.00, 40500.00, 843000.00),
+(105, 50000.00, 20000.00, 10000.00, 5000.00, 75000.00, 80000.00);
+
+
+
+select * from employee_salary;
+
+DELIMITER //
+
+CREATE PROCEDURE calculate_tax()
+BEGIN
+    DECLARE tax DECIMAL(10,2);
+    DECLARE emp_no INT;
+    DECLARE gross DECIMAL(10,2);
+    DECLARE done INT DEFAULT 0;
+    
+    -- Cursor to fetch employee details
+    DECLARE cur CURSOR FOR 
+        SELECT emp_no, gross_Salary FROM Employee_Salary;
+    
+    
+    DECLARE CONTINUE HANDLER FOR NOT FOUND SET done = 1;
+    
+    
+    OPEN cur;
+    
+    
+    read_loop: LOOP
+        FETCH cur INTO emp_no, gross;
+        
+        IF done = 1 THEN 
+            LEAVE read_loop;
+        END IF;
+        
+        -- Tax Calculation based on gross salary
+        IF gross > 500000 THEN 
+            SET tax = gross * 0.20;
+        ELSEIF gross > 300000 THEN 
+            SET tax = gross * 0.10;
+        ELSE 
+            SET tax = 0;
+        END IF;
+        
+        -- Display employee number and calculated tax
+        SELECT emp_no AS Employee_No, tax AS Tax;
+        
+    END LOOP read_loop;
+    
+    CLOSE cur;
+END //
+
+DELIMITER ;
+
+call calculate_tax();
+
+-- DROP PROCEDURE IF EXISTS calculate_tax;
+
+
+

@@ -1,0 +1,174 @@
+-- Borrower Table
+CREATE TABLE Borrower (
+    Rollin INT,
+    Name VARCHAR(50),
+    DateofIssue DATE,
+    NameofBook VARCHAR(100),
+    Status CHAR(1)
+);
+
+-- Fine Table
+CREATE TABLE Fine (
+    Roll_no INT,
+    Date DATE,
+    Amt DECIMAL(10, 2)
+);
+
+-- Library Table
+CREATE TABLE Library (
+    bid INT PRIMARY KEY,
+    bname VARCHAR(100),
+    doi DATE,
+    status CHAR(1),
+    noc INT
+);
+
+-- Transaction Table
+CREATE TABLE transaction (
+    tid INT AUTO_INCREMENT PRIMARY KEY,
+    bid INT,
+    bname VARCHAR(100),
+    status VARCHAR(10)
+);
+
+-- Sample data for Borrower
+INSERT INTO Borrower VALUES 
+(101, 'Alice', '2025-04-15', 'SQL Fundamentals', 'I'),
+(102, 'Bob', '2025-05-01', 'Data Structures', 'I'),
+(103, 'Charlie', '2025-05-10', 'Operating Systems', 'I');
+
+-- Sample data for Library
+INSERT INTO Library VALUES 
+(1, 'SQL Fundamentals', '2025-04-15', 'I', 3),
+(2, 'Data Structures', '2025-05-01', 'I', 2),
+(3, 'Operating Systems', '2025-05-10', 'I', 4);
+
+
+
+DECLARE
+    v_roll_no Borrower.Rollin%TYPE := &roll_no;
+    v_book_name Borrower.NameofBook%TYPE := '&book_name';
+    v_date_of_issue DATE;
+    v_days NUMBER;
+    v_fine_amt NUMBER := 0;
+    v_status CHAR(1);
+
+BEGIN
+    -- Get Date of Issue
+    SELECT DateofIssue, Status INTO v_date_of_issue, v_status
+    FROM Borrower
+    WHERE Rollin = v_roll_no AND NameofBook = v_book_name;
+
+    -- Calculate Days Passed
+    v_days := TRUNC(SYSDATE - v_date_of_issue);
+
+    -- Calculate Fine
+    IF v_days > 15 AND v_days <= 30 THEN
+        v_fine_amt := (v_days - 15) * 5;
+    ELSIF v_days > 30 THEN
+        v_fine_amt := (15 * 5) + ((v_days - 30) * 50);
+    END IF;
+
+    -- Update Borrower Status
+    UPDATE Borrower
+    SET Status = 'R'
+    WHERE Rollin = v_roll_no AND NameofBook = v_book_name;
+
+    -- Update Library NOC
+    UPDATE Library
+    SET noc = noc + 1
+    WHERE bname = v_book_name;
+
+    -- Insert into transaction
+    INSERT INTO transaction (bid, bname, status)
+    SELECT bid, bname, 'RETURN'
+    FROM Library
+    WHERE bname = v_book_name;
+
+    -- If Fine Exists, Insert Record
+    IF v_fine_amt > 0 THEN
+        INSERT INTO Fine (Roll_no, Date, Amt)
+        VALUES (v_roll_no, SYSDATE, v_fine_amt);
+    END IF;
+
+    DBMS_OUTPUT.PUT_LINE('Book returned successfully.');
+    IF v_fine_amt > 0 THEN
+        DBMS_OUTPUT.PUT_LINE('Fine Amount: Rs ' || v_fine_amt);
+    ELSE
+        DBMS_OUTPUT.PUT_LINE('No fine.');
+    END IF;
+
+EXCEPTION
+    WHEN NO_DATA_FOUND THEN
+        DBMS_OUTPUT.PUT_LINE('No record found for given Roll No and Book.');
+    WHEN OTHERS THEN
+        DBMS_OUTPUT.PUT_LINE('Error: ' || SQLERRM);
+END;
+/
+
+
+DELIMITER $$
+
+CREATE PROCEDURE ReturnBook (
+    IN in_roll_no INT,
+    IN in_book_name VARCHAR(100)
+)
+BEGIN
+    DECLARE v_date_of_issue DATE;
+    DECLARE v_days INT;
+    DECLARE v_fine_amt DECIMAL(10,2) DEFAULT 0;
+    DECLARE v_bid INT;
+    DECLARE v_status CHAR(1);
+    DECLARE EXIT HANDLER FOR SQLEXCEPTION
+    BEGIN
+        SELECT 'Error occurred during transaction.' AS Message;
+    END;
+
+    -- Get the date of issue
+    SELECT DateofIssue INTO v_date_of_issue
+    FROM Borrower
+    WHERE Rollin = in_roll_no AND NameofBook = in_book_name;
+
+    -- Calculate days
+    SET v_days = DATEDIFF(CURDATE(), v_date_of_issue);
+
+    -- Fine Calculation
+    IF v_days > 15 AND v_days <= 30 THEN
+        SET v_fine_amt = (v_days - 15) * 5;
+    ELSEIF v_days > 30 THEN
+        SET v_fine_amt = (15 * 5) + ((v_days - 30) * 50);
+    END IF;
+
+    -- Update Borrower Status
+    UPDATE Borrower
+    SET Status = 'R'
+    WHERE Rollin = in_roll_no AND NameofBook = in_book_name;
+
+    -- Update NOC in Library
+    UPDATE Library
+    SET noc = noc + 1
+    WHERE bname = in_book_name;
+
+    -- Insert into Transaction table
+    SELECT bid INTO v_bid FROM Library WHERE bname = in_book_name;
+
+    INSERT INTO transaction (bid, bname, status)
+    VALUES (v_bid, in_book_name, 'RETURN');
+
+    -- Insert fine if applicable
+    IF v_fine_amt > 0 THEN
+        INSERT INTO Fine (Roll_no, Date, Amt)
+        VALUES (in_roll_no, CURDATE(), v_fine_amt);
+    END IF;
+
+    -- Output simulation (can be selected manually in app)
+    SELECT 'Book Returned Successfully' AS Message;
+    SELECT v_fine_amt AS FineAmount;
+END$$
+
+DELIMITER ;
+
+CALL ReturnBook(101, 'SQL Fundamentals');
+
+
+

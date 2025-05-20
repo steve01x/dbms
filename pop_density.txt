@@ -1,0 +1,87 @@
+show databases;
+use exam_practice;
+show tables;
+
+create table CitiesIndia(
+pincode int primary key,
+nameofcity varchar(30),
+area decimal (10,2),
+population int,
+avgrainfall decimal(5,2)
+
+);
+
+INSERT INTO CitiesIndia (pincode, nameofcity, area, population, avgrainfall) VALUES
+(110001, 'New Delhi', 15.7, 21800, 793.00),
+(400001, 'Mumbai', 603.4, 2060, 250.00),
+(560001, 'Bangalore', 709.5, 12000, 970.00),
+(600001, 'Chennai', 426.0, 1100, 400.00),
+(700001, 'Kolkata', 12.0, 14900, 160.00);
+
+
+
+create table Categories(
+type varchar (20),
+pincode int,
+foreign key(pincode ) references CitiesIndia(pincode)
+
+);
+
+delimiter //
+
+create procedure calculate_density()
+begin
+	declare density decimal(10,2);
+	declare pin int;
+    declare pop int;
+    declare ar decimal(10,2);
+    declare done int default 0;
+    
+    
+    declare cur cursor for 
+    select pincode , population ,area from CitiesIndia;
+    
+    declare continue handler for not found set done =1;
+    
+    open cur;
+    
+    
+    read_loop : loop
+    fetch cur into pin,pop,ar;
+		
+        if done=1 then
+			leave read_loop;
+		end if;
+    
+		if pop < 10 or pop > 25718 then 
+			signal sqlstate '45000' 
+            set message_text ='Population out of Range';
+		else 
+        
+			set density = pop/ar;
+            
+            
+            if density > 3000 then 
+				insert into Categories values('High Density',pin);
+			elseif density >= 1000 then 
+				insert into Categories values('Moderate Density',pin);
+			else 
+				insert into Categories values('Low Density',pin);
+			end if;
+		end if;
+        
+	end loop read_loop;
+    
+    close cur;
+    
+end //
+delimiter ;
+
+call calculate_density();
+select * from Categories;
+
+
+-- truncate table CitiesIndia;
+-- drop table Categories;
+    
+    
