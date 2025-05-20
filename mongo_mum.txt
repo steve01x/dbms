@@ -1,0 +1,12 @@
+// 1. Area-wise total population sorted in ascending order
+db.Citydetails.aggregate([
+    { $group: { _id: "$area", total_population: { $sum: "$population.total" } } },
+    { $sort: { total_population: 1 } }
+]);
+
+// 2. Cities with average rainfall > 60
+db.Citydetails.find({ "geography.avgrainfall": { $gt: 60 } });
+
+// 3. Index on city and area, find max population in Mumbai
+db.Citydetails.createIndex({ name: 1, area: 1 });
+db.Citydetails.find({ name: "Mumbai" }).sort({ "population.total": -1 }).limit(1);

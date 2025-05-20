@@ -1,0 +1,14 @@
+db.sites.insertMany([
+    {url: "https://example.com", dateofaccess: "2025-05-01"},
+    {url: "https://example.com", dateofaccess: "2025-05-03"},
+    {url: "https://example2.com", dateofaccess: "2025-05-04"}
+]);
+
+db.sites.mapReduce(
+    function() { emit(this.url, 1); },
+    function(key, values) { return Array.sum(values); },
+    {
+        query: { dateofaccess: { $regex: "^2025-05" } },
+        out: "site_access_count"
+    }
+);

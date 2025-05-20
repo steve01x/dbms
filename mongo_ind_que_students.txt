@@ -1,0 +1,13 @@
+// Creating Collection and Inserting Data
+db.Students.insertMany([
+    { stud_id: 1, stud_name: "John Doe", stud_addr: "Pune", stud_marks: 85 },
+    { stud_id: 2, stud_name: "Jane Smith", stud_addr: "Mumbai", stud_marks: 90 },
+    { stud_id: 3, stud_name: "Mike Ross", stud_addr: "Delhi", stud_marks: 75 },
+    { stud_id: 4, stud_name: "Rachel Zane", stud_addr: "Chennai", stud_marks: 88 }
+]);
+
+// Creating Index on Student Name
+db.Students.createIndex({ stud_name: 1 });
+
+// Querying Indexed Collection
+db.Students.find().sort({ stud_name: 1 });

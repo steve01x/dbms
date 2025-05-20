@@ -1,0 +1,17 @@
+// Creating Collection and Inserting Data
+db.games.insertMany([
+    { name: "Game 1", gametype: "Action", score: 95, achievements: ["Game Master", "Speed Demon"] },
+    { name: "Game 2", gametype: "Puzzle", score: 85, achievements: ["Logic Master"] },
+    { name: "Game 3", gametype: "Racing", score: 90, achievements: ["Speed Demon"] },
+    { name: "Game 4", gametype: "Adventure", score: 78, achievements: ["Explorer"] },
+    { name: "Game 5", gametype: "Shooter", score: 88, achievements: ["Sharp Shooter", "Speed Demon"] }
+]);
+
+// 1. Query that returns all the games
+db.games.find();
+
+// 2. Query that returns the 3 highest scored games
+db.games.find().sort({ score: -1 }).limit(3);
+
+// 3. Query that returns all games with 'Game Master' and 'Speed Demon' achievements
+db.games.find({ achievements: { $all: ["Game Master", "Speed Demon"] } });

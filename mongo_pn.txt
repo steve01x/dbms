@@ -1,0 +1,18 @@
+// 1. Total population in Pune
+db.Citydetails.aggregate([
+    { $match: { name: "Pune" } },
+    { $group: { _id: null, total_population: { $sum: "$population.total" } } }
+]);
+
+// 2. Cities with population > 10 million
+db.Citydetails.find({ "population.total": { $gt: 10000000 } });
+
+// 3. Average population for each city
+db.Citydetails.aggregate([
+    { $group: { _id: "$name", avg_population: { $avg: "$population.total" } } }
+]);
+
+// 4. Minimum and maximum population cities
+db.Citydetails.aggregate([
+    { $group: { _id: "$name", min_pop: { $min: "$population.total" }, max_pop: { $max: "$population.total" } } }
+]);
