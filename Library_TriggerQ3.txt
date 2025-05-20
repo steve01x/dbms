@@ -1,0 +1,75 @@
+-- Q3
+
+DROP TABLE IF EXISTS Library_Audit;
+DROP TABLE IF EXISTS Library;
+
+CREATE TABLE Library (
+    bid INT PRIMARY KEY,
+    bname VARCHAR(100),
+    doi DATE,
+    status VARCHAR(10),
+    noc INT
+);
+
+CREATE TABLE Library_Audit (
+    bid INT,
+    bname VARCHAR(100),
+    noc INT,
+    timestampofquery TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    fine DECIMAL(10,2) DEFAULT 0
+);
+
+
+DELIMITER //
+
+CREATE TRIGGER trg_AuditLog_AfterInsert 
+AFTER INSERT ON Library 
+FOR EACH ROW
+BEGIN
+    INSERT INTO Library_Audit (bid, bname, noc)
+    VALUES (NEW.bid, NEW.bname, NEW.noc);
+END //
+
+CREATE TRIGGER trg_AuditLog_AfterUpdate 
+AFTER UPDATE ON Library 
+FOR EACH ROW
+BEGIN
+    DECLARE fine_amt DECIMAL(10,2);
+    
+    IF DATEDIFF(CURDATE(), NEW.doi) > 20 THEN
+        SET fine_amt = DATEDIFF(CURDATE(), NEW.doi) * 10;
+        
+        -- Record the fine in the audit table (do not update Library to avoid recursion)
+        INSERT INTO Library_Audit (bid, bname, noc, fine)
+        VALUES (NEW.bid, NEW.bname, NEW.noc, fine_amt);
+    ELSE
+        INSERT INTO Library_Audit (bid, bname, noc)
+        VALUES (NEW.bid, NEW.bname, NEW.noc);
+    END IF;
+END //
+
+DELIMITER ;
+
+
+-- Insert some test records
+INSERT INTO Library (bid, bname, doi, status, noc)
+VALUES 
+(101, 'C Programming', '2025-04-10', 'ISSUE', 5),
+(102, 'Data Structures', '2025-04-15', 'RETURN', 3),
+(103, 'Algorithms', '2025-04-25', 'ISSUE', 4),
+(104, 'Database Systems', '2025-05-01', 'RETURN', 2),
+(105, 'Operating Systems', '2025-04-01', 'ISSUE', 6); -- This one is overdue
+
+
+-- Simulate book return update to check fine trigger
+UPDATE Library 
+SET status = 'RETURN' 
+WHERE bid = 105;
+
+
+-- Check final Library table
+SELECT * FROM Library;
+
+-- Check audit logs with or without fines
+SELECT * FROM Library_Audit;
+
