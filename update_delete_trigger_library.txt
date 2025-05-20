@@ -1,0 +1,62 @@
+-- Step 1: Drop tables if they already exist
+DROP TABLE IF EXISTS Library_Audit;
+DROP TABLE IF EXISTS Library;
+
+-- Step 2: Create the main Library table
+CREATE TABLE Library (
+    BookID INT PRIMARY KEY,
+    Title VARCHAR(100),
+    Author VARCHAR(100),
+    YearPublished INT
+);
+
+-- Step 3: Create the audit table to store old data
+CREATE TABLE Library_Audit (
+    AuditID INT AUTO_INCREMENT PRIMARY KEY,
+    ActionType VARCHAR(10), -- 'UPDATE' or 'DELETE'
+    BookID INT,
+    Title VARCHAR(100),
+    Author VARCHAR(100),
+    YearPublished INT,
+    ActionTime TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+);
+
+-- Step 4: Insert sample data into Library
+INSERT INTO Library (BookID, Title, Author, YearPublished) VALUES
+(1, 'Harry Potter', 'J.K. Rowling', 1997),
+(2, 'The Hobbit', 'J.R.R. Tolkien', 1937),
+(3, '1984', 'George Orwell', 1949);
+
+-- Step 5: Create trigger for UPDATE
+DELIMITER $$
+CREATE TRIGGER trg_library_update
+BEFORE UPDATE ON Library
+FOR EACH ROW
+BEGIN
+    INSERT INTO Library_Audit (ActionType, BookID, Title, Author, YearPublished)
+    VALUES ('UPDATE', OLD.BookID, OLD.Title, OLD.Author, OLD.YearPublished);
+END $$
+DELIMITER ;
+
+-- Step 6: Create trigger for DELETE
+DELIMITER $$
+CREATE TRIGGER trg_library_delete
+BEFORE DELETE ON Library
+FOR EACH ROW
+BEGIN
+    INSERT INTO Library_Audit (ActionType, BookID, Title, Author, YearPublished)
+    VALUES ('DELETE', OLD.BookID, OLD.Title, OLD.Author, OLD.YearPublished);
+END $$
+DELIMITER ;
+
+-- ✅ Now test it
+-- Update a book
+UPDATE Library SET Title = 'Harry Potter and the Sorcerer\'s Stone' WHERE BookID = 1;
+
+-- Delete a book
+DELETE FROM Library WHERE BookID = 2;
+
+select * from library;
+
+-- Check the audit table
+SELECT * FROM Library_Audit;
