@@ -1,0 +1,93 @@
+Syntax Explanation:
+ BEFORE/ AFTER will specify the event timings. INSERT/UPDATE/LOGON/CREATE/etc. 
+will specify the event for which the trigger needs to be fired.
+ ON clause will specify on which object the above mentioned event is valid. For 
+example, this will be the table name on which the DML event may occur in the case 
+of DML Trigger.
+ Command "FOR EACH ROW" will specify the ROW level trigger.
+ WHEN clause will specify the additional condition in which the trigger needs to 
+fire.
+ The declaration part, execution part, exception handling part is same as that of the 
+other PL/SQL blocks. Declaration part and exception handling part are optional.
+ BENEFITS: 
+1. Triggers can be written for the following purposes
+ 2. Generating some derived column values automatically 
+3. Enforcing referential integrity
+ 4.Event logging and storing information on table access
+ 5. Auditing
+ 6. Synchronous replication of tables 
+7. Imposing security authorizations 8. 
+Preventing invalid transactions 
+INPUT: 
+TABLE EMPLOYEE_
+ Select * from employee_; TABLE 
+EMPLOYEE_TABLE
+ Create Table employee_table(employee_no int(5),employee_name 
+varchar(20),join_date varchar(20),designation varchar(20),salary int(10));
+ Select * from employee_table;
+ After INSERT 
+delimiter /
+ create trigger emp
+ AFTER INSERT on employee_ for each 
+row
+ begin
+ insert into employee_table 
+values(NEW.employee_no,NEW.employee_name,NEW.join_date,NE 
+W.designation,NEW.salary);
+ end;
+ /
+ COLLEGE: VIIT, Pune.
+BEFORE DELETE
+ delimiter /
+ create trigger emp10
+ BEFORE DELETE on employee_ for each 
+row
+ begin
+ DELETE FROM EMPLOYEE_TABLE where
+ OLD.employee_no=EMPLOYEE_TABLE.employee_no; end;
+ /
+ AFTER DELETE
+ delimiter /
+ create trigger emp6
+ AFTER DELETE on employee_ for each 
+row
+ begin
+ DELETE FROM EMPLOYEE_TABLE where
+ OLD.employee_no=employee_table.employee_no; end;
+ /
+ BEFORE UPDATE
+ Delimiter /
+ Create trigger emp2
+ BEFORE UPDATE on employee_ for each 
+row
+ Begin
+ UPDATE EMPLOYEE_TABLE SET
+ employee_name=old.employee_name,join_date=old.join_date,desi 
+gnation=old.designation,salary=old.salary,employee_no=old.emplo yee_no where 
+employee_no=old.employee_no;
+ End;
+ /
+ AFTER UPDATE
+ delimiter /
+ create trigger emp11
+ AFTER UPDATE on employee_ for each 
+row
+ begin
+ UPDATE EMPLOYEE_TABLE SET
+ COLLEGE: VIIT, Pune.
+employee_name=NEW.employee_name,join_date=NEW.join_date,d 
+esignation=NEW.designation,salary=NEW.salary,employee_no=NE W.employee_no 
+where employee_no=old.employee_no;
+ end;
+ /
+ INSERT, DELETE, UPDATE A ROW
+ Insert into employee_ 
+values(11,'URAVI','11/10/1999','PUNE',40000); UPDATE 
+EMPLOYEE_ SET SALARY=30000 WHERE EMPLOYEE_NO=11;
+ delete
+ from employee_ where employee_no=12; delete
+ from employee_ where employee_no=13; UPDATE 
+EMPLOYEE_ SET SALARY=200000 WHERE EMPLOYEE_NO=8;
+ DISPLAY THE TABLE
+ Select * from employee_; Select * 
+from employee_table
