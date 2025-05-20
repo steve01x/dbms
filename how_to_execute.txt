@@ -1,0 +1,78 @@
+Here’s how to **run MySQL** and **MongoDB** in the Ubuntu terminal:
+
+---
+
+## ✅ **1. Running MySQL in Ubuntu Terminal**
+
+### ▶️ **Start MySQL service**
+
+```bash
+sudo service mysql start
+```
+
+### ▶️ **Login to MySQL**
+
+```bash
+sudo mysql -u root -p
+```
+
+* `-u root` means you're logging in as the root user.
+* `-p` means you'll be prompted to enter the MySQL password.
+
+### ▶️ **Check MySQL is running**
+
+```bash
+sudo service mysql status
+```
+
+---
+
+## ✅ **2. Running MongoDB in Ubuntu Terminal**
+
+> Make sure MongoDB is installed (usually via `apt` or manually from MongoDB website).
+
+### ▶️ **Start MongoDB service**
+
+```bash
+sudo service mongod start
+```
+
+### ▶️ **Access MongoDB shell**
+
+```bash
+mongosh
+```
+
+* If `mongosh` is not installed, you can try:
+
+```bash
+mongo
+```
+
+(depending on your MongoDB version)
+
+### ▶️ **Check MongoDB is running**
+
+```bash
+sudo service mongod status
+```
+
+---
+
+## 🔄 **To Stop Services**
+
+* Stop MySQL:
+
+```bash
+sudo service mysql stop
+```
+
+* Stop MongoDB:
+
+```bash
+sudo service mongod stop
+```
+
+---
+
+Let me know if you want help installing either MySQL or MongoDB too!
